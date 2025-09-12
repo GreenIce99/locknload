@@ -29,14 +29,21 @@ function init() {
   const light = new THREE.AmbientLight(0xffffff, 0.8);
   scene.add(light);
 
-  // Start button
+  // Start button (fixed pointer lock logic)
   document.getElementById("startButton").addEventListener("click", () => {
-    document.getElementById("startScreen").style.display = "none";
-    document.getElementById("hud").style.display = "block";
-    gameRunning = true;
-    controls.lock();
-    spawnEnemy();
-    animate();
+    controls.lock(); // request pointer lock first
+
+    controls.addEventListener("lock", () => {
+      document.getElementById("startScreen").style.display = "none";
+      document.getElementById("hud").style.display = "block";
+      gameRunning = true;
+      spawnEnemy();
+      animate();
+    });
+
+    controls.addEventListener("unlock", () => {
+      gameRunning = false;
+    });
   });
 
   // Restart button
