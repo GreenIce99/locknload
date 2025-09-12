@@ -1,231 +1,146 @@
-window.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
-    const startScreen = document.getElementById('start-screen');
-    const startButton = document.getElementById('start-button');
-    const pauseScreen = document.getElementById('pause-screen');
-    const resumeButton = document.getElementById('resume-button');
-    const restartButton = document.getElementById('restart-button');
-    const gameOverScreen = document.getElementById('game-over-screen');
-    const restartButton2 = document.getElementById('restart-button2');
-    const finalScoreText = document.getElementById('final-score');
-    const canvas = document.getElementById('game-canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Audio
-    const bgMusic = document.getElementById('bg-music');
-    const hitSound = document.getElementById('hit-sound');
-    const powerupSound = document.getElementById('powerup-sound');
+let scene, camera, renderer, controls;
+let bullets = [];
+let enemies = [];
+let score = 0;
+let lives = 3;
+let move = { forward:false, backward:false, left:false, right:false };
+let gameRunning = false;
+let gamePaused = false;
 
-    // Game Variables
-    let gameRunning = false;
-    let paused = false;
-    let player, enemies, powerUps, score, lives, speed;
-    let highScore = localStorage.getItem('highScore') || 0;
-    const playerSize = 30;
-    const explosions = [];
-    const screenShake = { x: 0, y: 0, intensity: 0 };
+function init() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 
-    // Initialize game variables
-    function initGame() {
-        player = { x: canvas.width / 2, y: canvas.height - 50, size: playerSize };
-        enemies = [];
-        powerUps = [];
-        explosions.length = 0;
-        score = 0;
-        lives = 3;
-        speed = 2;
-        gameRunning = true;
-        paused = false;
-        screenShake.intensity = 0;
-        bgMusic.currentTime = 0;
-        bgMusic.play();
-    }
+  renderer = new THREE.WebGLRenderer({canvas: document.getElementById("gameCanvas")});
+  renderer.setSize(window.innerWidth, window.innerHeight);
 
-    // Start Game
-    function startGame() {
-        startScreen.style.display = 'none';
-        gameOverScreen.style.display = 'none';
-        pauseScreen.style.display = 'none';
-        canvas.style.display = 'block';
-        initGame();
-        requestAnimationFrame(gameLoop);
-    }
+  // Controls
+  controls = new THREE.PointerLockControls(camera, document.body);
+  scene.add(controls.getObject());
+  controls.getObject().position.set(0,2,5);
 
-    // Pause/Resume
-    function togglePause() {
-        if (!gameRunning) return;
-        paused = !paused;
-        pauseScreen.style.display = paused ? 'flex' : 'none';
-        if (paused) bgMusic.pause(); else bgMusic.play();
-    }
+  // Floor
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(100,100), new THREE.MeshBasicMaterial({color:0x333333}));
+  floor.rotation.x = -Math.PI/2;
+  scene.add(floor);
 
-    // Restart Game
-    function restartGame() { startGame(); }
+  // Lighting
+  const light = new THREE.AmbientLight(0xffffff,0.8);
+  scene.add(light);
 
-    // Controls
-    const keys = {};
-    document.addEventListener('keydown', (e) => {
-        keys[e.key] = true;
-        if (e.key === 'Escape') togglePause();
+  // Start
+  document.getElementById("startButton").addEventListener("click", () => {
+    controls.lock();
+    controls.addEventListener("lock", () => {
+      document.getElementById("startScreen").style.display="none";
+      document.getElementById("hud").style.display="block";
+      gameRunning=true; gamePaused=false;
+      spawnEnemy(); animate();
     });
-    document.addEventListener('keyup', (e) => keys[e.key] = false);
+  });
 
-    // Explosion effect
-    function addExplosion(x, y) {
-        explosions.push({ x, y, radius: 10, alpha: 1 });
-        screenShake.intensity = 5;
+  // Pause menu buttons
+  document.getElementById("resumeButton").addEventListener("click", ()=>{
+    document.getElementById("pauseScreen").style.display="none";
+    controls.lock(); gamePaused=false; gameRunning=true; animate();
+  });
+  document.getElementById("quitButton").addEventListener("click", ()=>window.location.reload());
+  document.getElementById("restartButton").addEventListener("click", ()=>window.location.reload());
+
+  // Shooting
+  document.addEventListener("mousedown", ()=>{if(gameRunning && !gamePaused) shoot();});
+
+  // Movement keys
+  document.addEventListener("keydown",(e)=>{
+    if(e.code==="KeyW") move.forward=true;
+    if(e.code==="KeyS") move.backward=true;
+    if(e.code==="KeyA") move.left=true;
+    if(e.code==="KeyD") move.right=true;
+  });
+  document.addEventListener("keyup",(e)=>{
+    if(e.code==="KeyW") move.forward=false;
+    if(e.code==="KeyS") move.backward=false;
+    if(e.code==="KeyA") move.left=false;
+    if(e.code==="KeyD") move.right=false;
+  });
+
+  // ESC pause
+  controls.addEventListener("unlock", ()=>{
+    if(gameRunning && !gamePaused){
+      gamePaused=true; gameRunning=false;
+      document.getElementById("pauseScreen").style.display="flex";
     }
+  });
 
-    function drawExplosions() {
-        for (let i = explosions.length - 1; i >= 0; i--) {
-            const exp = explosions[i];
-            ctx.beginPath();
-            ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI*2);
-            ctx.fillStyle = `rgba(255,165,0,${exp.alpha})`;
-            ctx.fill();
-            exp.radius += 2;
-            exp.alpha -= 0.05;
-            if (exp.alpha <= 0) explosions.splice(i,1);
-        }
+  // Resize
+  window.addEventListener("resize", ()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+}
+
+function shoot(){
+  const bullet = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1,8,8),
+    new THREE.MeshBasicMaterial({color:0xffff00})
+  );
+  bullet.position.copy(controls.getObject().position);
+  bullet.velocity = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).multiplyScalar(0.5);
+  scene.add(bullet); bullets.push(bullet);
+}
+
+function spawnEnemy(){
+  if(!gameRunning) return;
+  const enemy = new THREE.Mesh(
+    new THREE.BoxGeometry(1,1,1),
+    new THREE.MeshBasicMaterial({color:0xff0000})
+  );
+  enemy.position.set((Math.random()-0.5)*50,0.5,-50);
+  scene.add(enemy); enemies.push(enemy);
+  setTimeout(spawnEnemy,2000);
+}
+
+function animate(){
+  if(!gameRunning || gamePaused) return;
+  requestAnimationFrame(animate);
+
+  const speed=0.1;
+  if(move.forward) controls.moveForward(speed);
+  if(move.backward) controls.moveForward(-speed);
+  if(move.left) controls.moveRight(-speed);
+  if(move.right) controls.moveRight(speed);
+
+  bullets.forEach((b,i)=>{
+    b.position.add(b.velocity);
+    if(b.position.length()>100){scene.remove(b); bullets.splice(i,1);}
+  });
+
+  enemies.forEach((e,i)=>{
+    e.position.z +=0.05;
+    if(e.position.distanceTo(controls.getObject().position)<2){
+      lives--; document.getElementById("lives").innerText="Lives: "+lives;
+      scene.remove(e); enemies.splice(i,1);
+      if(lives<=0) endGame();
     }
+    bullets.forEach((b,j)=>{
+      if(e.position.distanceTo(b.position)<1){
+        score++; document.getElementById("score").innerText="Score: "+score;
+        scene.remove(e); scene.remove(b);
+        enemies.splice(i,1); bullets.splice(j,1);
+      }
+    });
+  });
 
-    // Spawn PowerUps
-    function spawnPowerUp() {
-        if (Math.random() < 0.01) {
-            powerUps.push({ x: Math.random()*(canvas.width-20)+10, y:-20, size:20, type:'life' });
-        }
-    }
+  renderer.render(scene,camera);
+}
 
-    function drawPowerUps() {
-        for (let i = powerUps.length-1; i>=0; i--) {
-            const p = powerUps[i];
-            p.y += 2;
-            ctx.fillStyle = '#0ff';
-            ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+function endGame(){
+  gameRunning=false; gamePaused=false;
+  document.getElementById("hud").style.display="none";
+  document.getElementById("pauseScreen").style.display="none";
+  document.getElementById("gameOverScreen").style.display="flex";
+  document.getElementById("finalScore").innerText="Final Score: "+score;
+}
 
-            // Collision with player
-            if (
-                player.x < p.x + p.size/2 &&
-                player.x > p.x - p.size/2 &&
-                player.y < p.y + p.size/2 &&
-                player.y > p.y - p.size/2
-            ) {
-                powerUps.splice(i,1);
-                lives++;
-                powerupSound.currentTime = 0;
-                powerupSound.play();
-            }
-
-            if (p.y > canvas.height+20) powerUps.splice(i,1);
-        }
-    }
-
-    // Screen shake effect
-    function applyScreenShake() {
-        if (screenShake.intensity > 0) {
-            screenShake.x = (Math.random()-0.5)*screenShake.intensity;
-            screenShake.y = (Math.random()-0.5)*screenShake.intensity;
-            screenShake.intensity *= 0.9;
-        } else {
-            screenShake.x = 0; screenShake.y = 0;
-        }
-        ctx.setTransform(1,0,0,1,screenShake.x,screenShake.y);
-    }
-
-    // Game Loop
-    function gameLoop() {
-        if (!gameRunning) return;
-        if (paused) { requestAnimationFrame(gameLoop); return; }
-
-        // Clear canvas with screen shake
-        ctx.setTransform(1,0,0,1,0,0);
-        ctx.fillStyle = '#222';
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        applyScreenShake();
-
-        // Move player
-        if (keys['ArrowLeft']) player.x -= 5;
-        if (keys['ArrowRight']) player.x += 5;
-        if (keys['ArrowUp']) player.y -= 5;
-        if (keys['ArrowDown']) player.y += 5;
-
-        // Keep player inside canvas
-        player.x = Math.max(player.size/2, Math.min(canvas.width - player.size/2, player.x));
-        player.y = Math.max(player.size/2, Math.min(canvas.height - player.size/2, player.y));
-
-        // Draw player
-        ctx.fillStyle = '#0f0';
-        ctx.fillRect(player.x - player.size/2, player.y - player.size/2, player.size, player.size);
-        ctx.strokeStyle = '#0a0';
-        ctx.strokeRect(player.x - player.size/2, player.y - player.size/2, player.size, player.size);
-
-        // Spawn enemies
-        if (Math.random() < 0.02 + score/5000) {
-            const type = Math.random() < 0.5 ? 'fast' : 'slow';
-            enemies.push({ x: Math.random()*(canvas.width-20)+10, y:-20, size: 20, type });
-        }
-
-        // Move enemies
-        for (let i = enemies.length - 1; i >= 0; i--) {
-            const e = enemies[i];
-            e.y += e.type === 'fast' ? speed + 2 : speed;
-            ctx.fillStyle = e.type === 'fast' ? '#f80' : '#f00';
-            ctx.fillRect(e.x - e.size/2, e.y - e.size/2, e.size, e.size);
-
-            // Collision with player
-            if (
-                player.x < e.x + e.size/2 &&
-                player.x > e.x - e.size/2 &&
-                player.y < e.y + e.size/2 &&
-                player.y > e.y - e.size/2
-            ) {
-                enemies.splice(i,1);
-                lives--;
-                hitSound.currentTime = 0;
-                hitSound.play();
-                addExplosion(player.x, player.y);
-                if (lives <= 0) { gameOver(); return; }
-            }
-
-            if (e.y > canvas.height + 20) enemies.splice(i,1);
-        }
-
-        // Draw power-ups
-        spawnPowerUp();
-        drawPowerUps();
-
-        // Draw explosions
-        drawExplosions();
-
-        // Update score and difficulty
-        score++;
-        if (score % 500 === 0) speed += 0.5;
-
-        // Draw score/lives/highscore
-        ctx.fillStyle = '#fff';
-        ctx.font = '20px Arial';
-        ctx.fillText(`Score: ${score}`, 10, 25);
-        ctx.fillText(`Lives: ${lives}`, 10, 50);
-        ctx.fillText(`High Score: ${highScore}`, 10, 75);
-
-        requestAnimationFrame(gameLoop);
-    }
-
-    function gameOver() {
-        gameRunning = false;
-        bgMusic.pause();
-        canvas.style.display = 'none';
-        gameOverScreen.style.display = 'flex';
-        finalScoreText.textContent = `Final Score: ${score}`;
-        if (score > highScore) {
-            highScore = score;
-            localStorage.setItem('highScore', highScore);
-        }
-    }
-
-    // Event Listeners
-    startButton.addEventListener('click', startGame);
-    resumeButton.addEventListener('click', togglePause);
-    restartButton.addEventListener('click', restartGame);
-    restartButton2.addEventListener('click', restartGame);
-});
+init();
