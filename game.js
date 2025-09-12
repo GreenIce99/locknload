@@ -33,15 +33,17 @@ function init() {
   const light = new THREE.AmbientLight(0xffffff,0.8);
   scene.add(light);
 
-  // Fix Start Button
-  document.getElementById("startButton").addEventListener("click", () => {
+  // FIXED Start Button
+  const startBtn = document.getElementById("startButton");
+  startBtn.addEventListener("click", () => {
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("hud").style.display = "block";
-    controls.lock(); // lock pointer and start game
+    controls.lock(); // lock pointer and start FPS controls
   });
 
+  // Start the game only when pointer is locked
   controls.addEventListener("lock", () => {
-    if (!gameRunning) {
+    if(!gameRunning){
       gameRunning = true;
       gamePaused = false;
       spawnEnemy();
