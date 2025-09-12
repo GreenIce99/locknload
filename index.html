@@ -1,77 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Galaxy Runner: Arcade Edition</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <style>
-        body {
-            margin: 0;
-            font-family: sans-serif;
-            text-align: center;
-            background: #111;
-            color: #fff;
-            overflow: hidden;
-        }
-        #game-canvas {
-            display: none;
-            background: #222;
-            margin: 0 auto;
-            border: 2px solid #fff;
-        }
-        #start-screen, #pause-screen, #game-over-screen {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            border: none;
-            background: #ff6600;
-            color: #fff;
-            border-radius: 10px;
-            margin-top: 10px;
-        }
-        button:hover { background: #ff8800; }
-        h1,h2 { margin: 10px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Lock N Load</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-    <!-- Start Screen -->
-    <div id="start-screen">
-        <h1>Galaxy Runner: Arcade Edition</h1>
-        <button id="start-button">Start Game</button>
-    </div>
+  <!-- Start Screen -->
+  <div id="startScreen">
+    <h1>🔫 Lock N Load</h1>
+    <p>Controls:</p>
+    <ul>
+      <li>W/A/S/D = Move</li>
+      <li>Mouse = Look around</li>
+      <li>Click = Shoot</li>
+      <li>ESC = Pause</li>
+    </ul>
+    <button id="startButton">Start Game</button>
+  </div>
 
-    <!-- Pause Screen -->
-    <div id="pause-screen" style="display:none;">
-        <h1>Game Paused</h1>
-        <button id="resume-button">Resume Game</button>
-        <button id="restart-button">Restart Game</button>
-    </div>
+  <!-- HUD -->
+  <div id="hud" style="display:none;">
+    <h1 id="score">Score: 0</h1>
+    <h2 id="lives">Lives: 3</h2>
+  </div>
 
-    <!-- Game Over Screen -->
-    <div id="game-over-screen" style="display:none;">
-        <h1>Game Over!</h1>
-        <h2 id="final-score"></h2>
-        <button id="restart-button2">Restart Game</button>
-    </div>
+  <!-- Pause Screen -->
+  <div id="pauseScreen" style="display:none;">
+    <h1>⏸️ Paused</h1>
+    <button id="resumeButton">Resume</button>
+    <button id="quitButton">Quit to Start</button>
+  </div>
 
-    <!-- Game Canvas -->
-    <canvas id="game-canvas" width="800" height="600"></canvas>
+  <!-- Game Over Screen -->
+  <div id="gameOverScreen" style="display:none;">
+    <h1>💀 Game Over</h1>
+    <p id="finalScore"></p>
+    <button id="restartButton">Restart</button>
+  </div>
 
-    <!-- Audio -->
-    <audio id="bg-music" src="assets/bg-music.mp3" loop></audio>
-    <audio id="hit-sound" src="assets/hit-sound.mp3"></audio>
-    <audio id="powerup-sound" src="assets/powerup-sound.mp3"></audio>
+  <canvas id="gameCanvas"></canvas>
 
-    <script src="game.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/examples/js/controls/PointerLockControls.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>
