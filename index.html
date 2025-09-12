@@ -2,15 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>School FPS Game</title>
+  <title>Lock N Load</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="hud">
+  <!-- Start Screen -->
+  <div id="startScreen">
+    <h1>🔫 Lock N Load</h1>
+    <p>Controls:</p>
+    <ul>
+      <li>WASD = Move</li>
+      <li>Mouse = Look around</li>
+      <li>Click = Shoot</li>
+    </ul>
+    <button id="startButton">Start Game</button>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" style="display:none;">
     <h1 id="score">Score: 0</h1>
     <h2 id="lives">Lives: 3</h2>
   </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameOverScreen" style="display:none;">
+    <h1>💀 Game Over</h1>
+    <p id="finalScore"></p>
+    <button id="restartButton">Restart</button>
+  </div>
+
   <canvas id="gameCanvas"></canvas>
+
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/examples/js/controls/PointerLockControls.js"></script>
   <script src="game.js"></script>
