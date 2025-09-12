@@ -5,6 +5,7 @@ let score = 0;
 let lives = 3;
 let move = { forward: false, backward: false, left: false, right: false };
 let gameRunning = false;
+let gamePaused = false;
 
 function init() {
   scene = new THREE.Scene();
@@ -29,21 +30,31 @@ function init() {
   const light = new THREE.AmbientLight(0xffffff, 0.8);
   scene.add(light);
 
-  // Start button (fixed pointer lock logic)
+  // Start button
   document.getElementById("startButton").addEventListener("click", () => {
-    controls.lock(); // request pointer lock first
-
+    controls.lock();
     controls.addEventListener("lock", () => {
       document.getElementById("startScreen").style.display = "none";
       document.getElementById("hud").style.display = "block";
       gameRunning = true;
+      gamePaused = false;
       spawnEnemy();
       animate();
     });
+  });
 
-    controls.addEventListener("unlock", () => {
-      gameRunning = false;
-    });
+  // Resume button
+  document.getElementById("resumeButton").addEventListener("click", () => {
+    document.getElementById("pauseScreen").style.display = "none";
+    controls.lock();
+    gamePaused = false;
+    gameRunning = true;
+    animate();
+  });
+
+  // Quit button
+  document.getElementById("quitButton").addEventListener("click", () => {
+    window.location.reload(); // back to start screen
   });
 
   // Restart button
@@ -53,7 +64,7 @@ function init() {
 
   // Shooting
   document.addEventListener("mousedown", () => {
-    if (gameRunning) shoot();
+    if (gameRunning && !gamePaused) shoot();
   });
 
   // Movement keys
@@ -68,6 +79,15 @@ function init() {
     if (e.code === "KeyS") move.backward = false;
     if (e.code === "KeyA") move.left = false;
     if (e.code === "KeyD") move.right = false;
+  });
+
+  // Handle ESC (pause)
+  controls.addEventListener("unlock", () => {
+    if (gameRunning && !gamePaused) {
+      gamePaused = true;
+      gameRunning = false;
+      document.getElementById("pauseScreen").style.display = "flex";
+    }
   });
 
   // Resize
@@ -97,21 +117,21 @@ function spawnEnemy() {
   enemy.position.set((Math.random()-0.5)*50, 0.5, -50);
   scene.add(enemy);
   enemies.push(enemy);
-  setTimeout(spawnEnemy, 2000); // new enemy every 2s
+  setTimeout(spawnEnemy, 2000);
 }
 
 function animate() {
-  if (!gameRunning) return;
+  if (!gameRunning || gamePaused) return;
   requestAnimationFrame(animate);
 
-  // Handle movement
+  // Movement
   const speed = 0.1;
   if (move.forward) controls.moveForward(speed);
   if (move.backward) controls.moveForward(-speed);
   if (move.left) controls.moveRight(-speed);
   if (move.right) controls.moveRight(speed);
 
-  // Move bullets
+  // Bullets
   bullets.forEach((b, i) => {
     b.position.add(b.velocity);
     if (b.position.length() > 100) {
@@ -120,7 +140,7 @@ function animate() {
     }
   });
 
-  // Move enemies
+  // Enemies
   enemies.forEach((e, i) => {
     e.position.z += 0.05;
     if (e.position.distanceTo(controls.getObject().position) < 2) {
@@ -128,9 +148,7 @@ function animate() {
       document.getElementById("lives").innerText = "Lives: " + lives;
       scene.remove(e);
       enemies.splice(i, 1);
-      if (lives <= 0) {
-        endGame();
-      }
+      if (lives <= 0) endGame();
     }
     bullets.forEach((b, j) => {
       if (e.position.distanceTo(b.position) < 1) {
@@ -149,7 +167,9 @@ function animate() {
 
 function endGame() {
   gameRunning = false;
+  gamePaused = false;
   document.getElementById("hud").style.display = "none";
+  document.getElementById("pauseScreen").style.display = "none";
   document.getElementById("gameOverScreen").style.display = "flex";
   document.getElementById("finalScore").innerText = "Final Score: " + score;
 }
