@@ -18,8 +18,8 @@ canvas {
   display: block;
 }
 
-/* Start Screen */
-#startScreen, #gameOverScreen {
+/* Start, Pause, Game Over screens */
+#startScreen, #pauseScreen, #gameOverScreen {
   position: absolute;
   top: 0;
   left: 0;
@@ -35,12 +35,12 @@ canvas {
   text-align: center;
 }
 
-#startScreen h1, #gameOverScreen h1 {
+#startScreen h1, #pauseScreen h1, #gameOverScreen h1 {
   font-size: 3em;
   margin-bottom: 20px;
 }
 
-#startScreen button, #gameOverScreen button {
+#startScreen button, #pauseScreen button, #gameOverScreen button {
   margin-top: 20px;
   padding: 10px 30px;
   font-size: 1.5em;
@@ -49,4 +49,8 @@ canvas {
   border-radius: 8px;
   background: #28a745;
   color: white;
+}
+
+#pauseScreen button {
+  background: #007bff;
 }
