@@ -22,7 +22,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let player, enemies, powerUps, score, lives, speed;
     let highScore = localStorage.getItem('highScore') || 0;
     const playerSize = 30;
-    const explosions = []; // store explosion effects
+    const explosions = [];
     const screenShake = { x: 0, y: 0, intensity: 0 };
 
     // Initialize game variables
@@ -163,4 +163,69 @@ window.addEventListener('DOMContentLoaded', () => {
         if (Math.random() < 0.02 + score/5000) {
             const type = Math.random() < 0.5 ? 'fast' : 'slow';
             enemies.push({ x: Math.random()*(canvas.width-20)+10, y:-20, size: 20, type });
-       
+        }
+
+        // Move enemies
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const e = enemies[i];
+            e.y += e.type === 'fast' ? speed + 2 : speed;
+            ctx.fillStyle = e.type === 'fast' ? '#f80' : '#f00';
+            ctx.fillRect(e.x - e.size/2, e.y - e.size/2, e.size, e.size);
+
+            // Collision with player
+            if (
+                player.x < e.x + e.size/2 &&
+                player.x > e.x - e.size/2 &&
+                player.y < e.y + e.size/2 &&
+                player.y > e.y - e.size/2
+            ) {
+                enemies.splice(i,1);
+                lives--;
+                hitSound.currentTime = 0;
+                hitSound.play();
+                addExplosion(player.x, player.y);
+                if (lives <= 0) { gameOver(); return; }
+            }
+
+            if (e.y > canvas.height + 20) enemies.splice(i,1);
+        }
+
+        // Draw power-ups
+        spawnPowerUp();
+        drawPowerUps();
+
+        // Draw explosions
+        drawExplosions();
+
+        // Update score and difficulty
+        score++;
+        if (score % 500 === 0) speed += 0.5;
+
+        // Draw score/lives/highscore
+        ctx.fillStyle = '#fff';
+        ctx.font = '20px Arial';
+        ctx.fillText(`Score: ${score}`, 10, 25);
+        ctx.fillText(`Lives: ${lives}`, 10, 50);
+        ctx.fillText(`High Score: ${highScore}`, 10, 75);
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function gameOver() {
+        gameRunning = false;
+        bgMusic.pause();
+        canvas.style.display = 'none';
+        gameOverScreen.style.display = 'flex';
+        finalScoreText.textContent = `Final Score: ${score}`;
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', highScore);
+        }
+    }
+
+    // Event Listeners
+    startButton.addEventListener('click', startGame);
+    resumeButton.addEventListener('click', togglePause);
+    restartButton.addEventListener('click', restartGame);
+    restartButton2.addEventListener('click', restartGame);
+});
