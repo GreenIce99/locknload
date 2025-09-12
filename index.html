@@ -1,48 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lock N Load</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>My Game</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            text-align: center;
+            background: #111;
+            color: #fff;
+        }
+        #game-canvas {
+            display: none;
+            background: #222;
+            margin: 20px auto;
+            border: 2px solid #fff;
+        }
+        #start-screen {
+            margin-top: 50px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            background: #ff6600;
+            color: #fff;
+            border-radius: 10px;
+        }
+        button:hover {
+            background: #ff8800;
+        }
+    </style>
 </head>
 <body>
-  <!-- Start Screen -->
-  <div id="startScreen">
-    <h1>🔫 Lock N Load</h1>
-    <p>Controls:</p>
-    <ul>
-      <li>WASD = Move</li>
-      <li>Mouse = Look around</li>
-      <li>Click = Shoot</li>
-      <li>ESC = Pause</li>
-    </ul>
-    <button id="startButton">Start Game</button>
-  </div>
+    <div id="start-screen">
+        <h1>Welcome to My Game!</h1>
+        <button id="start-button">Start Game</button>
+    </div>
+    <canvas id="game-canvas" width="800" height="600"></canvas>
 
-  <!-- HUD -->
-  <div id="hud" style="display:none;">
-    <h1 id="score">Score: 0</h1>
-    <h2 id="lives">Lives: 3</h2>
-  </div>
-
-  <!-- Pause Screen -->
-  <div id="pauseScreen" style="display:none;">
-    <h1>⏸️ Paused</h1>
-    <button id="resumeButton">Resume</button>
-    <button id="quitButton">Quit to Start</button>
-  </div>
-
-  <!-- Game Over Screen -->
-  <div id="gameOverScreen" style="display:none;">
-    <h1>💀 Game Over</h1>
-    <p id="finalScore"></p>
-    <button id="restartButton">Restart</button>
-  </div>
-
-  <canvas id="gameCanvas"></canvas>
-
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/examples/js/controls/PointerLockControls.js"></script>
-  <script src="game.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
