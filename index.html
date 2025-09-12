@@ -14,6 +14,7 @@
       <li>WASD = Move</li>
       <li>Mouse = Look around</li>
       <li>Click = Shoot</li>
+      <li>ESC = Pause</li>
     </ul>
     <button id="startButton">Start Game</button>
   </div>
@@ -22,6 +23,13 @@
   <div id="hud" style="display:none;">
     <h1 id="score">Score: 0</h1>
     <h2 id="lives">Lives: 3</h2>
+  </div>
+
+  <!-- Pause Screen -->
+  <div id="pauseScreen" style="display:none;">
+    <h1>⏸️ Paused</h1>
+    <button id="resumeButton">Resume</button>
+    <button id="quitButton">Quit to Start</button>
   </div>
 
   <!-- Game Over Screen -->
