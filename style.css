@@ -17,3 +17,36 @@ body, html {
 canvas {
   display: block;
 }
+
+/* Start Screen */
+#startScreen, #gameOverScreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  z-index: 20;
+  text-align: center;
+}
+
+#startScreen h1, #gameOverScreen h1 {
+  font-size: 3em;
+  margin-bottom: 20px;
+}
+
+#startScreen button, #gameOverScreen button {
+  margin-top: 20px;
+  padding: 10px 30px;
+  font-size: 1.5em;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background: #28a745;
+  color: white;
+}
