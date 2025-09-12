@@ -3,9 +3,8 @@ let bullets = [];
 let enemies = [];
 let score = 0;
 let lives = 3;
-
-init();
-animate();
+let move = { forward: false, backward: false, left: false, right: false };
+let gameRunning = false;
 
 function init() {
   scene = new THREE.Scene();
@@ -13,12 +12,12 @@ function init() {
   
   renderer = new THREE.WebGLRenderer({canvas: document.getElementById("gameCanvas")});
   renderer.setSize(window.innerWidth, window.innerHeight);
-  
+
   // Controls
   controls = new THREE.PointerLockControls(camera, document.body);
-  document.body.addEventListener("click", () => controls.lock());
   scene.add(controls.getObject());
-  
+  controls.getObject().position.set(0, 2, 5);
+
   // Floor
   const floorGeo = new THREE.PlaneGeometry(100, 100);
   const floorMat = new THREE.MeshBasicMaterial({color: 0x333333});
@@ -30,11 +29,39 @@ function init() {
   const light = new THREE.AmbientLight(0xffffff, 0.8);
   scene.add(light);
 
-  // Spawn first enemies
-  spawnEnemy();
+  // Start button
+  document.getElementById("startButton").addEventListener("click", () => {
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("hud").style.display = "block";
+    gameRunning = true;
+    controls.lock();
+    spawnEnemy();
+    animate();
+  });
+
+  // Restart button
+  document.getElementById("restartButton").addEventListener("click", () => {
+    window.location.reload();
+  });
 
   // Shooting
-  document.addEventListener("click", shoot);
+  document.addEventListener("mousedown", () => {
+    if (gameRunning) shoot();
+  });
+
+  // Movement keys
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "KeyW") move.forward = true;
+    if (e.code === "KeyS") move.backward = true;
+    if (e.code === "KeyA") move.left = true;
+    if (e.code === "KeyD") move.right = true;
+  });
+  document.addEventListener("keyup", (e) => {
+    if (e.code === "KeyW") move.forward = false;
+    if (e.code === "KeyS") move.backward = false;
+    if (e.code === "KeyA") move.left = false;
+    if (e.code === "KeyD") move.right = false;
+  });
 
   // Resize
   window.addEventListener("resize", () => {
@@ -48,7 +75,7 @@ function shoot() {
   const bulletGeo = new THREE.SphereGeometry(0.1, 8, 8);
   const bulletMat = new THREE.MeshBasicMaterial({color: 0xffff00});
   const bullet = new THREE.Mesh(bulletGeo, bulletMat);
-  bullet.position.copy(camera.position);
+  bullet.position.copy(controls.getObject().position);
   bullet.velocity = new THREE.Vector3();
   bullet.velocity.set(0, 0, -1).applyQuaternion(camera.quaternion).multiplyScalar(0.5);
   scene.add(bullet);
@@ -56,6 +83,7 @@ function shoot() {
 }
 
 function spawnEnemy() {
+  if (!gameRunning) return;
   const enemyGeo = new THREE.BoxGeometry(1, 1, 1);
   const enemyMat = new THREE.MeshBasicMaterial({color: 0xff0000});
   const enemy = new THREE.Mesh(enemyGeo, enemyMat);
@@ -66,8 +94,15 @@ function spawnEnemy() {
 }
 
 function animate() {
+  if (!gameRunning) return;
   requestAnimationFrame(animate);
-  renderer.render(scene, camera);
+
+  // Handle movement
+  const speed = 0.1;
+  if (move.forward) controls.moveForward(speed);
+  if (move.backward) controls.moveForward(-speed);
+  if (move.left) controls.moveRight(-speed);
+  if (move.right) controls.moveRight(speed);
 
   // Move bullets
   bullets.forEach((b, i) => {
@@ -81,14 +116,13 @@ function animate() {
   // Move enemies
   enemies.forEach((e, i) => {
     e.position.z += 0.05;
-    if (e.position.distanceTo(camera.position) < 2) {
+    if (e.position.distanceTo(controls.getObject().position) < 2) {
       lives--;
       document.getElementById("lives").innerText = "Lives: " + lives;
       scene.remove(e);
       enemies.splice(i, 1);
       if (lives <= 0) {
-        alert("Game Over! Final Score: " + score);
-        window.location.reload();
+        endGame();
       }
     }
     bullets.forEach((b, j) => {
@@ -102,4 +136,15 @@ function animate() {
       }
     });
   });
+
+  renderer.render(scene, camera);
 }
+
+function endGame() {
+  gameRunning = false;
+  document.getElementById("hud").style.display = "none";
+  document.getElementById("gameOverScreen").style.display = "flex";
+  document.getElementById("finalScore").innerText = "Final Score: " + score;
+}
+
+init();
