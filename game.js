@@ -7,6 +7,11 @@ let move = { forward:false, backward:false, left:false, right:false };
 let gameRunning = false;
 let gamePaused = false;
 
+// Difficulty variables
+let enemySpeed = 0.05;       // Starting speed
+let spawnInterval = 2000;    // Starting spawn interval in ms
+let difficultyTimer = 0;     // Timer to increase difficulty
+
 function init() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
@@ -28,15 +33,20 @@ function init() {
   const light = new THREE.AmbientLight(0xffffff,0.8);
   scene.add(light);
 
-  // Start
+  // Fix Start Button
   document.getElementById("startButton").addEventListener("click", () => {
-    controls.lock();
-    controls.addEventListener("lock", () => {
-      document.getElementById("startScreen").style.display="none";
-      document.getElementById("hud").style.display="block";
-      gameRunning=true; gamePaused=false;
-      spawnEnemy(); animate();
-    });
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("hud").style.display = "block";
+    controls.lock(); // lock pointer and start game
+  });
+
+  controls.addEventListener("lock", () => {
+    if (!gameRunning) {
+      gameRunning = true;
+      gamePaused = false;
+      spawnEnemy();
+      animate();
+    }
   });
 
   // Pause menu buttons
@@ -92,18 +102,29 @@ function shoot(){
 
 function spawnEnemy(){
   if(!gameRunning) return;
+
   const enemy = new THREE.Mesh(
     new THREE.BoxGeometry(1,1,1),
     new THREE.MeshBasicMaterial({color:0xff0000})
   );
   enemy.position.set((Math.random()-0.5)*50,0.5,-50);
   scene.add(enemy); enemies.push(enemy);
-  setTimeout(spawnEnemy,2000);
+
+  // Next spawn interval
+  setTimeout(spawnEnemy, spawnInterval);
 }
 
 function animate(){
   if(!gameRunning || gamePaused) return;
   requestAnimationFrame(animate);
+
+  // Increase difficulty every 10 seconds
+  difficultyTimer += 0.016;
+  if(difficultyTimer >= 10){
+    enemySpeed += 0.01;                  // faster enemies
+    spawnInterval = Math.max(500, spawnInterval - 100); // spawn faster
+    difficultyTimer = 0;
+  }
 
   const speed=0.1;
   if(move.forward) controls.moveForward(speed);
@@ -117,7 +138,11 @@ function animate(){
   });
 
   enemies.forEach((e,i)=>{
-    e.position.z +=0.05;
+    // Smart movement: move toward player
+    const dir = new THREE.Vector3();
+    dir.subVectors(controls.getObject().position, e.position).setY(0).normalize();
+    e.position.add(dir.multiplyScalar(enemySpeed));
+
     if(e.position.distanceTo(controls.getObject().position)<2){
       lives--; document.getElementById("lives").innerText="Lives: "+lives;
       scene.remove(e); enemies.splice(i,1);
