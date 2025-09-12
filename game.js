@@ -15,6 +15,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let gameRunning = false;
     let paused = false;
     let player, enemies, score, lives, speed;
+    let highScore = localStorage.getItem('highScore') || 0;
 
     const playerSize = 30;
 
@@ -121,11 +122,12 @@ window.addEventListener('DOMContentLoaded', () => {
         score++;
         if (score % 500 === 0) speed += 0.5; // Progressive difficulty
 
-        // Display score and lives
+        // Display score, lives, and high score
         ctx.fillStyle = '#fff';
         ctx.font = '20px Arial';
         ctx.fillText(`Score: ${score}`, 10, 25);
         ctx.fillText(`Lives: ${lives}`, 10, 50);
+        ctx.fillText(`High Score: ${highScore}`, 10, 75);
 
         requestAnimationFrame(gameLoop);
     }
@@ -133,8 +135,14 @@ window.addEventListener('DOMContentLoaded', () => {
     function gameOver() {
         gameRunning = false;
         canvas.style.display = 'none';
-        finalScoreText.textContent = `Final Score: ${score}`;
         gameOverScreen.style.display = 'flex';
+        finalScoreText.textContent = `Final Score: ${score}`;
+
+        // Update high score
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', highScore);
+        }
     }
 
     // Event Listeners
