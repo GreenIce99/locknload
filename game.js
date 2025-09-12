@@ -33,15 +33,14 @@ function init() {
   const light = new THREE.AmbientLight(0xffffff,0.8);
   scene.add(light);
 
-  // FIXED Start Button
+  // START BUTTON FIXED
   const startBtn = document.getElementById("startButton");
   startBtn.addEventListener("click", () => {
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("hud").style.display = "block";
-    controls.lock(); // lock pointer and start FPS controls
+    controls.lock(); // Must be triggered by user click
   });
 
-  // Start the game only when pointer is locked
   controls.addEventListener("lock", () => {
     if(!gameRunning){
       gameRunning = true;
