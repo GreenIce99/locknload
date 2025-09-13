@@ -33,18 +33,19 @@ function init() {
   const light = new THREE.AmbientLight(0xffffff,0.8);
   scene.add(light);
 
-  // START BUTTON / OVERLAY FIXED
+  // Start overlay/button
   const startOverlay = document.getElementById("startOverlay");
   const startBtn = document.getElementById("startButton");
 
   function startGame() {
-      startOverlay.style.display = "none";  // hide overlay
-      document.getElementById("hud").style.display = "block"; // show HUD
-      controls.lock(); // must be triggered by user click
+      startOverlay.style.display = "none";
+      document.getElementById("hud").style.display = "block";
+
+      showCountdown(() => controls.lock());
   }
 
-  startOverlay.addEventListener("click", startGame); // click anywhere
-  startBtn.addEventListener("click", startGame);    // or button click
+  startOverlay.addEventListener("click", startGame);
+  startBtn.addEventListener("click", startGame);
 
   controls.addEventListener("lock", () => {
       if(!gameRunning){
@@ -55,10 +56,10 @@ function init() {
       }
   });
 
-  // Pause menu
+  // Pause menu buttons
   document.getElementById("resumeButton").addEventListener("click", ()=>{
     document.getElementById("pauseScreen").style.display="none";
-    controls.lock(); gamePaused=false; gameRunning=true; animate();
+    showCountdown(() => controls.lock());
   });
   document.getElementById("quitButton").addEventListener("click", ()=>window.location.reload());
   document.getElementById("restartButton").addEventListener("click", ()=>window.location.reload());
@@ -66,7 +67,7 @@ function init() {
   // Shooting
   document.addEventListener("mousedown", ()=>{if(gameRunning && !gamePaused) shoot();});
 
-  // Movement
+  // Movement keys
   document.addEventListener("keydown",(e)=>{
     if(e.code==="KeyW") move.forward=true;
     if(e.code==="KeyS") move.backward=true;
@@ -94,6 +95,25 @@ function init() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
+}
+
+// Countdown function
+function showCountdown(callback){
+  const countdownEl = document.getElementById("countdown");
+  countdownEl.style.display = "block";
+  let counter = 3;
+  countdownEl.innerText = counter;
+
+  const interval = setInterval(()=>{
+    counter--;
+    if(counter>0){
+      countdownEl.innerText = counter;
+    } else {
+      clearInterval(interval);
+      countdownEl.style.display = "none";
+      callback();
+    }
+  }, 1000);
 }
 
 function shoot(){
