@@ -32,6 +32,7 @@ canvas {
   color: white;
   z-index: 100;
   text-align: center;
+  cursor: pointer; /* makes overlay clickable */
 }
 
 #startOverlay h1, #pauseScreen h1, #gameOverScreen h1 {
