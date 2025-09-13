@@ -32,7 +32,7 @@ canvas {
   color: white;
   z-index: 100;
   text-align: center;
-  cursor: pointer; /* makes overlay clickable */
+  cursor: pointer;
 }
 
 #startOverlay h1, #pauseScreen h1, #gameOverScreen h1 {
@@ -53,4 +53,15 @@ canvas {
 
 #pauseScreen button {
   background: #007bff;
+}
+
+#countdown {
+  position: absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:5em;
+  color:white;
+  display:none;
+  z-index:101;
 }
