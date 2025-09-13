@@ -18,7 +18,7 @@ canvas {
   display: block;
 }
 
-#startScreen, #pauseScreen, #gameOverScreen {
+#startOverlay, #pauseScreen, #gameOverScreen {
   position: absolute;
   top: 0;
   left: 0;
@@ -30,16 +30,16 @@ canvas {
   align-items: center;
   justify-content: center;
   color: white;
-  z-index: 20;
+  z-index: 100;
   text-align: center;
 }
 
-#startScreen h1, #pauseScreen h1, #gameOverScreen h1 {
+#startOverlay h1, #pauseScreen h1, #gameOverScreen h1 {
   font-size: 3em;
   margin-bottom: 20px;
 }
 
-#startScreen button, #pauseScreen button, #gameOverScreen button {
+#startOverlay button, #pauseScreen button, #gameOverScreen button {
   margin-top: 20px;
   padding: 10px 30px;
   font-size: 1.5em;
