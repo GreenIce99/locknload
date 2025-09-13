@@ -33,16 +33,19 @@ function init() {
   const light = new THREE.AmbientLight(0xffffff,0.8);
   scene.add(light);
 
-  // START BUTTON FIXED
+  // START BUTTON / OVERLAY FIXED
   const startOverlay = document.getElementById("startOverlay");
   const startBtn = document.getElementById("startButton");
-  startBtn.addEventListener("click", () => {
-      startOverlay.style.display = "none";   // Hide overlay
-      document.getElementById("hud").style.display = "block"; // Show HUD
-      controls.lock(); // Must be triggered by this click
-  });
 
-  // Start game after pointer lock
+  function startGame() {
+      startOverlay.style.display = "none";  // hide overlay
+      document.getElementById("hud").style.display = "block"; // show HUD
+      controls.lock(); // must be triggered by user click
+  }
+
+  startOverlay.addEventListener("click", startGame); // click anywhere
+  startBtn.addEventListener("click", startGame);    // or button click
+
   controls.addEventListener("lock", () => {
       if(!gameRunning){
           gameRunning = true;
