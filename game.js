@@ -8,9 +8,9 @@ let gameRunning = false;
 let gamePaused = false;
 
 // Difficulty variables
-let enemySpeed = 0.05;       // Starting speed
-let spawnInterval = 2000;    // Starting spawn interval in ms
-let difficultyTimer = 0;     // Timer to increase difficulty
+let enemySpeed = 0.05;
+let spawnInterval = 2000;
+let difficultyTimer = 0;
 
 function init() {
   scene = new THREE.Scene();
@@ -34,23 +34,25 @@ function init() {
   scene.add(light);
 
   // START BUTTON FIXED
+  const startOverlay = document.getElementById("startOverlay");
   const startBtn = document.getElementById("startButton");
   startBtn.addEventListener("click", () => {
-    document.getElementById("startScreen").style.display = "none";
-    document.getElementById("hud").style.display = "block";
-    controls.lock(); // Must be triggered by user click
+      startOverlay.style.display = "none";   // Hide overlay
+      document.getElementById("hud").style.display = "block"; // Show HUD
+      controls.lock(); // Must be triggered by this click
   });
 
+  // Start game after pointer lock
   controls.addEventListener("lock", () => {
-    if(!gameRunning){
-      gameRunning = true;
-      gamePaused = false;
-      spawnEnemy();
-      animate();
-    }
+      if(!gameRunning){
+          gameRunning = true;
+          gamePaused = false;
+          spawnEnemy();
+          animate();
+      }
   });
 
-  // Pause menu buttons
+  // Pause menu
   document.getElementById("resumeButton").addEventListener("click", ()=>{
     document.getElementById("pauseScreen").style.display="none";
     controls.lock(); gamePaused=false; gameRunning=true; animate();
@@ -61,7 +63,7 @@ function init() {
   // Shooting
   document.addEventListener("mousedown", ()=>{if(gameRunning && !gamePaused) shoot();});
 
-  // Movement keys
+  // Movement
   document.addEventListener("keydown",(e)=>{
     if(e.code==="KeyW") move.forward=true;
     if(e.code==="KeyS") move.backward=true;
@@ -103,15 +105,12 @@ function shoot(){
 
 function spawnEnemy(){
   if(!gameRunning) return;
-
   const enemy = new THREE.Mesh(
     new THREE.BoxGeometry(1,1,1),
     new THREE.MeshBasicMaterial({color:0xff0000})
   );
   enemy.position.set((Math.random()-0.5)*50,0.5,-50);
   scene.add(enemy); enemies.push(enemy);
-
-  // Next spawn interval
   setTimeout(spawnEnemy, spawnInterval);
 }
 
@@ -119,11 +118,11 @@ function animate(){
   if(!gameRunning || gamePaused) return;
   requestAnimationFrame(animate);
 
-  // Increase difficulty every 10 seconds
+  // Difficulty increase
   difficultyTimer += 0.016;
   if(difficultyTimer >= 10){
-    enemySpeed += 0.01;                  // faster enemies
-    spawnInterval = Math.max(500, spawnInterval - 100); // spawn faster
+    enemySpeed += 0.01;
+    spawnInterval = Math.max(500, spawnInterval - 100);
     difficultyTimer = 0;
   }
 
@@ -139,7 +138,6 @@ function animate(){
   });
 
   enemies.forEach((e,i)=>{
-    // Smart movement: move toward player
     const dir = new THREE.Vector3();
     dir.subVectors(controls.getObject().position, e.position).setY(0).normalize();
     e.position.add(dir.multiplyScalar(enemySpeed));
